@@ -1,0 +1,7 @@
+data/Reviews.csv
+models/
+__pycache__/
+*.pyc
+.env
+*.ipynb_checkpoints
+mongo-data/
