@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Amazon Reviews Intelligence{% endblock %}</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet">
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+  <!-- Socket.IO -->
+  <script src="https://cdn.socket.io/4.6.0/socket.io.min.js"></script>
+
+  <!-- Lucide icons -->
+   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+
+  <style>
+    :root {
+      --bg:        #080c10;
+      --bg2:       #0e1419;
+      --bg3:       #151c24;
+      --border:    #1e2d3d;
+      --text:      #cdd9e5;
+      --text-dim:  #6e8098;
+      --green:     #3fb950;
+      --red:       #f85149;
+      --yellow:    #d29922;
+      --blue:      #58a6ff;
+      --purple:    #bc8cff;
+      --font-mono: 'Space Mono', monospace;
+      --font-main: 'Syne', sans-serif;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-main);
+      min-height: 100vh;
+    }
+
+    /* ── Scrollbar ─────────────────────── */
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    /* ── Nav ───────────────────────────── */
+    nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 2rem;
+      height: 56px;
+      background: var(--bg2);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 800;
+      font-size: 1rem;
+      letter-spacing: -0.02em;
+      color: #fff;
+      text-decoration: none;
+    }
+
+    .nav-logo .dot {
+      width: 8px; height: 8px;
+      background: var(--green);
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50%       { opacity: 0.5; transform: scale(0.8); }
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 0.25rem;
+    }
+
+    .nav-links a {
+      padding: 6px 16px;
+      border-radius: 6px;
+      color: var(--text-dim);
+      text-decoration: none;
+      font-size: 0.85rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      transition: all 0.15s;
+    }
+
+    .nav-links a:hover,
+    .nav-links a.active {
+      background: var(--bg3);
+      color: var(--text);
+    }
+
+    .nav-links a.active { color: var(--blue); }
+
+    .nav-badge {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      color: var(--text-dim);
+    }
+
+    /* ── Layout ────────────────────────── */
+    .page { padding: 2rem; max-width: 1400px; margin: 0 auto; }
+
+    /* ── Cards ─────────────────────────── */
+    .card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.5rem;
+    }
+
+    .card-title {
+      font-size: 0.72rem;
+      font-family: var(--font-mono);
+      letter-spacing: 0.1em;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      margin-bottom: 1rem;
+    }
+
+    /* ── Labels ────────────────────────── */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 10px;
+      border-radius: 4px;
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .badge-positive { background: #1a2e1f; color: var(--green); border: 1px solid #2d4a35; }
+    .badge-negative { background: #2e1a1a; color: var(--red);   border: 1px solid #4a2d2d; }
+    .badge-neutral  { background: #2a2510; color: var(--yellow); border: 1px solid #4a3f18; }
+
+    .badge::before {
+      content: '';
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+  </style>
+
+  {% block extra_style %}{% endblock %}
+</head>
+<body>
+
+<nav>
+  <a href="/" class="nav-logo">
+    Amazon Reviews Intelligence
+  </a>
+  <div class="nav-links">
+    <a href="/" class="{% if request.endpoint == 'index' %}active{% endif %}">
+    <i data-lucide="radio" style="width:14px;height:14px;vertical-align:middle;margin-right:6px;"></i>
+    Flux Online
+    </a>
+    <a href="/dashboard" class="{% if request.endpoint == 'dashboard' %}active{% endif %}">
+    <i data-lucide="layout-dashboard" style="width:14px;height:14px;vertical-align:middle;margin-right:6px;"></i>
+    Dashboard Offline
+    </a>
+  </div>
+  <span class="nav-badge" id="nav-clock">--:--:--</span>
+</nav>
+
+{% block content %}{% endblock %}
+
+<script>
+  // Horloge
+  function updateClock() {
+    document.getElementById("nav-clock").textContent =
+      new Date().toLocaleTimeString("fr-FR");
+  }
+  setInterval(updateClock, 1000);
+  updateClock();
+</script>
+
+<script>
+  lucide.createIcons();
+</script>
+
+{% block extra_script %}{% endblock %}
+</body>
+</html>

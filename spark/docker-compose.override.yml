@@ -1,0 +1,11 @@
+services:
+  spark-master:
+    volumes:
+      - ./spark:/opt/spark/work
+      - ./models:/models
+      - ./data:/data
+  spark-worker:
+    volumes:
+      - ./spark:/opt/spark/work
+      - ./models:/models
+      - ./data:/data

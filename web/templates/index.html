@@ -1,0 +1,413 @@
+{% extends "base.html" %}
+{% block title %}Flux Online — Amazon Reviews{% endblock %}
+
+{% block extra_style %}
+<style>
+  .online-layout {
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    gap: 1.5rem;
+    padding: 2rem;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+
+  /* ── Header status ─────────────────── */
+  .status-bar {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 2rem;
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .status-indicator {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+  }
+
+  .status-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--green);
+    animation: pulse 1.5s infinite;
+  }
+
+  .status-dot.offline { background: var(--red); animation: none; }
+
+  .counter-pill {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 4px 14px;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--blue);
+  }
+
+  /* ── Stream feed ───────────────────── */
+  .stream-feed {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    overflow-y: auto;
+    max-height: calc(100vh - 180px);
+  }
+
+  .review-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.2rem 1.5rem;
+    margin-bottom: 0.75rem;
+    animation: slideIn 0.3s ease;
+    transition: border-color 0.2s;
+    position: relative;
+    overflow: visible;  
+    }
+
+  .review-card::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    border-radius: 3px 0 0 3px;
+    z-index: 1;
+  }
+
+  .review-card.positive::before { background: var(--green); }
+  .review-card.negative::before { background: var(--red); }
+  .review-card.neutral::before  { background: var(--yellow); }
+
+  .review-card:hover { border-color: #2d3f52; }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(-12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .review-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.6rem;
+  }
+
+  .review-meta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--text-dim);
+  }
+
+  .review-product {
+    color: var(--blue);
+    font-weight: 700;
+  }
+
+  .review-score {
+    display: flex;
+    gap: 2px;
+  }
+
+  .star { color: var(--text-dim); font-size: 0.75rem; }
+  .star.filled { color: var(--yellow); }
+
+  .review-summary {
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: #e6edf3;
+    margin-bottom: 0.4rem;
+    line-height: 1.4;
+  }
+
+  .review-text {
+    font-size: 0.82rem;
+    color: var(--text-dim);
+    line-height: 1.6;
+    word-break: break-word;
+    white-space: pre-wrap;
+    }
+
+  .review-time {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    color: var(--text-dim);
+    margin-top: 0.5rem;
+  }
+
+  /* ── Sidebar stats ─────────────────── */
+  .sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .stat-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.2rem;
+  }
+
+  .stat-number {
+    font-family: var(--font-mono);
+    font-size: 2rem;
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+
+  .stat-number.green  { color: var(--green); }
+  .stat-number.red    { color: var(--red); }
+  .stat-number.yellow { color: var(--yellow); }
+  .stat-number.blue   { color: var(--blue); }
+
+  .stat-label {
+    font-size: 0.72rem;
+    font-family: var(--font-mono);
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  /* Mini donut canvas */
+  .mini-chart-wrap {
+    margin-top: 1rem;
+    position: relative;
+    height: 180px;
+  }
+
+  .live-log {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.8rem;
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    color: var(--text-dim);
+    height: 140px;
+    overflow-y: auto;
+    line-height: 1.8;
+  }
+
+  .log-line { color: var(--text-dim); }
+  .log-line .ok   { color: var(--green); }
+  .log-line .warn { color: var(--yellow); }
+  .log-line .err  { color: var(--red); }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Status Bar -->
+<div class="status-bar">
+  <div class="status-indicator">
+    <div class="status-dot" id="status-dot"></div>
+    <span id="status-text">Connexion en cours...</span>
+  </div>
+  <span class="counter-pill">
+    <span id="total-count">0</span> avis traités
+  </span>
+  <span class="counter-pill" style="color: var(--green);">
+    <span id="pos-count">0</span> positifs
+  </span>
+  <span class="counter-pill" style="color: var(--red);">
+    <span id="neg-count">0</span> négatifs
+  </span>
+  <span class="counter-pill" style="color: var(--yellow);">
+    <span id="neu-count">0</span> neutres
+  </span>
+</div>
+
+<!-- Main Layout -->
+<div class="online-layout">
+
+  <!-- Feed -->
+  <div>
+    <div class="card-title" style="padding: 0 0 1rem 0;">
+    <i data-lucide="radio" style="width:14px;height:14px;vertical-align:middle;margin-right:6px;"></i>
+      flux en temps réel — topic: amazon-reviews
+    </div>
+    <div class="stream-feed" id="stream-feed">
+      <!-- Cards injectées par JS -->
+    </div>
+  </div>
+
+  <!-- Sidebar -->
+  <div class="sidebar">
+
+    <div class="stat-card">
+      <div class="card-title">Distribution live</div>
+      <div class="mini-chart-wrap">
+        <canvas id="live-donut"></canvas>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="card-title">Dernier avis reçu</div>
+      <div id="last-product" style="font-family:var(--font-mono);font-size:0.8rem;color:var(--blue);">---</div>
+      <div id="last-score"   style="font-size:0.75rem;color:var(--text-dim);margin-top:4px;">score: ---</div>
+    </div>
+
+    <div class="stat-card">
+      <div class="card-title">Logs système</div>
+      <div class="live-log" id="live-log">
+        <div class="log-line"><span class="ok">[OK]</span> Système prêt</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_script %}
+<script>
+  const socket = io();
+  let counts = { positive: 0, negative: 0, neutral: 0 };
+  let total   = 0;
+  const MAX_CARDS = 50;
+
+  // ── Donut Chart ──────────────────────
+  const donutCtx = document.getElementById("live-donut").getContext("2d");
+  const donutChart = new Chart(donutCtx, {
+    type: "doughnut",
+    data: {
+      labels: ["Positif", "Négatif", "Neutre"],
+      datasets: [{
+        data: [0, 0, 0],
+        backgroundColor: ["#3fb950", "#f85149", "#d29922"],
+        borderColor:     ["#1a2e1f",  "#2e1a1a",  "#2a2510"],
+        borderWidth: 3,
+        hoverOffset: 6
+      }]
+    },
+    options: {
+      cutout: "72%",
+      plugins: { legend: { display: false } },
+      animation: { duration: 300 }
+    }
+  });
+
+  function updateDonut() {
+    donutChart.data.datasets[0].data = [
+      counts.positive, counts.negative, counts.neutral
+    ];
+    donutChart.update();
+  }
+
+  // ── Stars ─────────────────────────────
+  function renderStars(score) {
+    return [1,2,3,4,5].map(i =>
+      `<span class="star ${i <= score ? 'filled' : ''}">★</span>`
+    ).join('');
+  }
+
+  // ── Add log line ──────────────────────
+  function addLog(type, msg) {
+    const log = document.getElementById("live-log");
+    const t = new Date().toLocaleTimeString("fr-FR");
+    const cls = type === "ok" ? "ok" : type === "warn" ? "warn" : "err";
+    log.innerHTML += `<div class="log-line">${t} <span class="${cls}">[${type.toUpperCase()}]</span> ${msg}</div>`;
+    log.scrollTop = log.scrollHeight;
+  }
+
+  // ── Render review card ────────────────
+  function renderCard(data) {
+    const label = data.predicted_label || data.label || "neutral";
+    const score = data.score || 3;
+    const time  = data.processed_at
+      ? new Date(data.processed_at).toLocaleTimeString("fr-FR")
+      : new Date().toLocaleTimeString("fr-FR");
+
+    const card = document.createElement("div");
+    card.className = `review-card ${label}`;
+    card.innerHTML = `
+      <div class="review-header">
+        <div class="review-meta">
+          <span class="review-product">${data.product_id || "---"}</span>
+          <span>·</span>
+          <span>${data.user_id}</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div class="review-score">${renderStars(score)}</div>
+          <span class="badge badge-${label}">${label}</span>
+        </div>
+      </div>
+      <div class="review-summary">${data.summary || ""}</div>
+      <div class="review-text">${data.text || ""}</div>
+      <div class="review-time">⏱ ${time}</div>
+    `;
+
+    const feed = document.getElementById("stream-feed");
+    feed.prepend(card);
+
+    // Limiter à MAX_CARDS
+    while (feed.children.length > MAX_CARDS) {
+      feed.removeChild(feed.lastChild);
+    }
+  }
+
+  // ── Socket events ─────────────────────
+  socket.on("connect", () => {
+    document.getElementById("status-dot").classList.remove("offline");
+    document.getElementById("status-text").textContent = "Connecté — écoute du flux Kafka";
+    addLog("ok", "Socket connecté");
+  });
+
+  socket.on("disconnect", () => {
+    document.getElementById("status-dot").classList.add("offline");
+    document.getElementById("status-text").textContent = "Déconnecté";
+    addLog("err", "Connexion perdue");
+  });
+
+  socket.on("new_prediction", (data) => {
+    renderCard(data);
+    const label = data.predicted_label || "neutral";
+    counts[label] = (counts[label] || 0) + 1;
+    total++;
+
+    document.getElementById("total-count").textContent = total;
+    document.getElementById("pos-count").textContent   = counts.positive;
+    document.getElementById("neg-count").textContent   = counts.negative;
+    document.getElementById("neu-count").textContent   = counts.neutral;
+    document.getElementById("last-product").textContent = data.product_id || "---";
+    document.getElementById("last-score").textContent   = `score: ${data.score}/5 — prédit: ${label}`;
+
+    updateDonut();
+    addLog("ok", `Avis reçu [${data.product_id}] → ${label}`);
+  });
+
+  socket.on("new_review", (data) => {
+    addLog("warn", `Avis brut reçu (pas encore prédit) [${data.product_id}]`);
+  });
+
+  // ── Charger les stats initiales ───────
+ function refreshStats() {
+  fetch("/api/stats").then(r => r.json()).then(s => {
+    counts = {
+      positive: s.positive,
+      negative: s.negative,
+      neutral:  s.neutral
+    };
+    total = s.total;
+    document.getElementById("total-count").textContent = total;
+    document.getElementById("pos-count").textContent   = counts.positive;
+    document.getElementById("neg-count").textContent   = counts.negative;
+    document.getElementById("neu-count").textContent   = counts.neutral;
+    updateDonut();
+    });
+    }
+
+    // Charger immédiatement + toutes les 3 secondes
+    refreshStats();
+    setInterval(refreshStats, 3000);
+</script>
+{% endblock %}

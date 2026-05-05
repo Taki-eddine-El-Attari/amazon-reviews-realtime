@@ -1,7 +1,32 @@
+# ─── Données ──────────────────────────
 data/Reviews.csv
+data/*.parquet
+data/*.png
+data/test_data.parquet/
+
+# ─── Modèle Spark (trop lourd) ────────
 models/
+
+# ─── Spark generated files ────────────
+app-*/
+checkpoint/
+
+# ─── Python ───────────────────────────
 __pycache__/
 *.pyc
+*.pyo
+.venv/
+venv/
+
+# ─── Jupyter ──────────────────────────
+.ipynb_checkpoints/
+notebooks/.ipynb_checkpoints/
+
+# ─── Environnement ────────────────────
 .env
-*.ipynb_checkpoints
+
+# ─── Docker volumes ───────────────────
 mongo-data/
+
+# ─── VS Code ──────────────────────────
+.vscode/

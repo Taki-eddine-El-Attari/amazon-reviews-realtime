@@ -1,0 +1,439 @@
+{% extends "base.html" %}
+{% block title %}Dashboard Offline — Amazon Reviews{% endblock %}
+
+{% block extra_style %}
+<style>
+  .dash-page { padding: 2rem; max-width: 1400px; margin: 0 auto; }
+
+  /* ── KPI Row ───────────────────────── */
+  .kpi-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .kpi-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.4rem 1.5rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .kpi-card::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 2px;
+  }
+
+  .kpi-card.total::after   { background: var(--blue); }
+  .kpi-card.pos::after     { background: var(--green); }
+  .kpi-card.neg::after     { background: var(--red); }
+  .kpi-card.neu::after     { background: var(--yellow); }
+
+  .kpi-value {
+    font-family: var(--font-mono);
+    font-size: 2.2rem;
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+
+  .kpi-card.total .kpi-value { color: var(--blue); }
+  .kpi-card.pos   .kpi-value { color: var(--green); }
+  .kpi-card.neg   .kpi-value { color: var(--red); }
+  .kpi-card.neu   .kpi-value { color: var(--yellow); }
+
+  .kpi-label {
+    font-size: 0.72rem;
+    font-family: var(--font-mono);
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .kpi-pct {
+    position: absolute;
+    top: 1.2rem; right: 1.2rem;
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--text-dim);
+  }
+
+  /* ── Chart Grid ────────────────────── */
+  .chart-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .chart-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.5rem;
+  }
+
+  .chart-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.2rem;
+  }
+
+  .chart-title {
+    font-size: 0.72rem;
+    font-family: var(--font-mono);
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  .chart-canvas-wrap { position: relative; height: 280px; }
+
+  /* ── Product filter ─────────────────── */
+  .product-input {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 6px 12px;
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    outline: none;
+    width: 200px;
+    transition: border-color 0.2s;
+  }
+
+  .product-input:focus { border-color: var(--blue); }
+
+  .btn-search {
+    background: var(--blue);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 6px 14px;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    cursor: pointer;
+    margin-left: 6px;
+    transition: opacity 0.15s;
+  }
+
+  .btn-search:hover { opacity: 0.85; }
+
+  /* ── Top products table ─────────────── */
+  .table-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+  }
+
+  .table-header {
+    padding: 1.2rem 1.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+  }
+
+  thead th {
+    padding: 0.8rem 1.5rem;
+    text-align: left;
+    color: var(--text-dim);
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 400;
+    border-bottom: 1px solid var(--border);
+  }
+
+  tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: background 0.1s;
+  }
+
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: var(--bg3); }
+
+  tbody td { padding: 0.9rem 1.5rem; color: var(--text); }
+
+  .score-bar-wrap {
+    width: 120px;
+    height: 6px;
+    background: var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+    display: inline-block;
+    vertical-align: middle;
+    margin-right: 8px;
+  }
+
+  .score-bar {
+    height: 100%;
+    background: var(--green);
+    border-radius: 3px;
+    transition: width 0.5s;
+  }
+
+  /* ── Refresh btn ────────────────────── */
+  .btn-refresh {
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 5px 12px;
+    color: var(--text-dim);
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .btn-refresh:hover { border-color: var(--blue); color: var(--blue); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dash-page">
+
+  <!-- Header -->
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;">
+    <div>
+      <div style="font-size:1.4rem;font-weight:800;color:#e6edf3;letter-spacing:-0.02em;">
+        Dashboard Analytique
+      </div>
+      <div style="font-family:var(--font-mono);font-size:0.72rem;color:var(--text-dim);margin-top:3px;">
+        Données journalisées — MongoDB · amazon_reviews
+      </div>
+    </div>
+    <button class="btn-refresh" onclick="loadAll()">↻ Actualiser</button>
+  </div>
+
+  <!-- KPIs -->
+  <div class="kpi-row">
+    <div class="kpi-card total">
+      <div class="kpi-value" id="kpi-total">---</div>
+      <div class="kpi-label">Total avis prédits</div>
+    </div>
+    <div class="kpi-card pos">
+      <div class="kpi-value" id="kpi-pos">---</div>
+      <div class="kpi-label">Positifs</div>
+      <span class="kpi-pct" id="kpi-pos-pct">--%</span>
+    </div>
+    <div class="kpi-card neg">
+      <div class="kpi-value" id="kpi-neg">---</div>
+      <div class="kpi-label">Négatifs</div>
+      <span class="kpi-pct" id="kpi-neg-pct">--%</span>
+    </div>
+    <div class="kpi-card neu">
+      <div class="kpi-value" id="kpi-neu">---</div>
+      <div class="kpi-label">Neutres</div>
+      <span class="kpi-pct" id="kpi-neu-pct">--%</span>
+    </div>
+  </div>
+
+  <!-- Charts Row -->
+  <div class="chart-grid">
+
+    <!-- Barres par date -->
+    <div class="chart-card">
+      <div class="chart-header">
+        <span class="chart-title">Résultats des prédictions par date</span>
+      </div>
+      <div class="chart-canvas-wrap">
+        <canvas id="bar-chart"></canvas>
+      </div>
+    </div>
+
+    <!-- Donut produit -->
+    <div class="chart-card">
+      <div class="chart-header">
+        <span class="chart-title">Scoring par produit</span>
+      </div>
+      <div style="display:flex;gap:6px;margin-bottom:1rem;">
+        <input class="product-input" id="product-input"
+               type="text" placeholder="ProductId (ex: B001E4KFG0)"
+               value="B001E4KFG0">
+        <button class="btn-search" onclick="loadProductScoring()">Analyser</button>
+      </div>
+      <div class="chart-canvas-wrap" style="height:200px;">
+        <canvas id="donut-chart"></canvas>
+      </div>
+      <div id="donut-legend" style="display:flex;gap:12px;justify-content:center;margin-top:1rem;font-family:var(--font-mono);font-size:0.7rem;color:var(--text-dim);"></div>
+    </div>
+  </div>
+
+  <!-- Top Produits -->
+  <div class="table-card">
+    <div class="table-header">
+      <span class="chart-title">Top 10 produits les plus commentés</span>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Product ID</th>
+          <th>Total avis</th>
+          <th>Positifs</th>
+          <th>Négatifs</th>
+          <th>Score positif</th>
+          <th>Sentiment</th>
+        </tr>
+      </thead>
+      <tbody id="top-products-body">
+        <tr><td colspan="7" style="text-align:center;color:var(--text-dim);padding:2rem;">Chargement...</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_script %}
+<script>
+  // ── Chart : barres par date ───────────
+  const barCtx = document.getElementById("bar-chart").getContext("2d");
+  const barChart = new Chart(barCtx, {
+    type: "bar",
+    data: { labels: [], datasets: [
+      { label: "Positif", data: [], backgroundColor: "#3fb950b3", borderColor: "#3fb950", borderWidth: 1, borderRadius: 3 },
+      { label: "Négatif", data: [], backgroundColor: "#f85149b3", borderColor: "#f85149", borderWidth: 1, borderRadius: 3 },
+      { label: "Neutre",  data: [], backgroundColor: "#d29922b3", borderColor: "#d29922", borderWidth: 1, borderRadius: 3 }
+    ]},
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          labels: { color: "#6e8098", font: { family: "Space Mono", size: 11 }, boxWidth: 10 }
+        }
+      },
+      scales: {
+        x: {
+          stacked: true,
+          ticks: { color: "#6e8098", font: { family: "Space Mono", size: 10 } },
+          grid:  { color: "#1e2d3d" }
+        },
+        y: {
+          stacked: true,
+          ticks: { color: "#6e8098", font: { family: "Space Mono", size: 10 } },
+          grid:  { color: "#1e2d3d" }
+        }
+      }
+    }
+  });
+
+  // ── Chart : donut produit ─────────────
+  const donutCtx = document.getElementById("donut-chart").getContext("2d");
+  const donutChart = new Chart(donutCtx, {
+    type: "doughnut",
+    data: {
+      labels: ["Positif", "Négatif", "Neutre"],
+      datasets: [{
+        data: [0, 0, 0],
+        backgroundColor: ["#3fb950", "#f85149", "#d29922"],
+        borderColor:     ["#1a2e1f",  "#2e1a1a",  "#2a2510"],
+        borderWidth: 3,
+        hoverOffset: 8
+      }]
+    },
+    options: {
+      cutout: "68%",
+      plugins: { legend: { display: false } }
+    }
+  });
+
+  // ── Loaders ───────────────────────────
+  function loadStats() {
+    fetch("/api/stats").then(r => r.json()).then(s => {
+      const pct = (v) => s.total > 0 ? ((v / s.total) * 100).toFixed(1) + "%" : "--%";
+      document.getElementById("kpi-total").textContent = s.total.toLocaleString("fr-FR");
+      document.getElementById("kpi-pos").textContent   = s.positive.toLocaleString("fr-FR");
+      document.getElementById("kpi-neg").textContent   = s.negative.toLocaleString("fr-FR");
+      document.getElementById("kpi-neu").textContent   = s.neutral.toLocaleString("fr-FR");
+      document.getElementById("kpi-pos-pct").textContent = pct(s.positive);
+      document.getElementById("kpi-neg-pct").textContent = pct(s.negative);
+      document.getElementById("kpi-neu-pct").textContent = pct(s.neutral);
+    });
+  }
+
+  function loadBarChart() {
+    fetch("/api/predictions-by-date").then(r => r.json()).then(data => {
+      barChart.data.labels                   = data.map(d => d.date);
+      barChart.data.datasets[0].data         = data.map(d => d.positive || 0);
+      barChart.data.datasets[1].data         = data.map(d => d.negative || 0);
+      barChart.data.datasets[2].data         = data.map(d => d.neutral  || 0);
+      barChart.update();
+    });
+  }
+
+  function loadProductScoring() {
+    const pid = document.getElementById("product-input").value.trim();
+    fetch(`/api/product-scoring?product_id=${pid}`).then(r => r.json()).then(d => {
+      const s = d.scoring;
+      const total = s.positive + s.negative + s.neutral;
+      donutChart.data.datasets[0].data = [s.positive, s.negative, s.neutral];
+      donutChart.update();
+      const pct = v => total > 0 ? ((v/total)*100).toFixed(1) : 0;
+      document.getElementById("donut-legend").innerHTML = `
+        <span style="color:var(--green);">● Pos ${pct(s.positive)}%</span>
+        <span style="color:var(--red);">  ● Nég ${pct(s.negative)}%</span>
+        <span style="color:var(--yellow);">● Neu ${pct(s.neutral)}%</span>
+      `;
+    });
+  }
+
+  function loadTopProducts() {
+    fetch("/api/top-products").then(r => r.json()).then(products => {
+      const tbody = document.getElementById("top-products-body");
+      if (!products.length) {
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--text-dim);padding:2rem;">Aucune donnée</td></tr>`;
+        return;
+      }
+      tbody.innerHTML = products.map((p, i) => `
+        <tr>
+          <td style="color:var(--text-dim);">${i + 1}</td>
+          <td style="color:var(--blue);font-weight:700;">${p.product_id}</td>
+          <td>${p.total.toLocaleString("fr-FR")}</td>
+          <td style="color:var(--green);">${p.positive.toLocaleString("fr-FR")}</td>
+          <td style="color:var(--red);">${p.negative.toLocaleString("fr-FR")}</td>
+          <td>
+            <div class="score-bar-wrap">
+              <div class="score-bar" style="width:${p.score_pct}%"></div>
+            </div>
+            ${p.score_pct}%
+          </td>
+          <td>
+            <span class="badge badge-${p.score_pct > 60 ? 'positive' : p.score_pct < 30 ? 'negative' : 'neutral'}">
+              ${p.score_pct > 60 ? 'positive' : p.score_pct < 30 ? 'negative' : 'neutral'}
+            </span>
+          </td>
+        </tr>
+      `).join("");
+    });
+  }
+
+  function loadAll() {
+    loadStats();
+    loadBarChart();
+    loadProductScoring();
+    loadTopProducts();
+  }
+
+  // Charger au démarrage
+  loadAll();
+
+  // Rafraîchir toutes les 3 secondes
+  setInterval(loadAll, 3000);
+</script>
+{% endblock %}

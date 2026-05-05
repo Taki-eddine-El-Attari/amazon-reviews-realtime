@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
 
   # ─── Zookeeper ───────────────────────────────────────────
@@ -10,7 +8,7 @@ services:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
     ports:
-      - "2181:2181"
+      - "3000:2181"
     networks:
       - bigdata-net
 
@@ -66,25 +64,36 @@ services:
 
   # ─── Spark Master ─────────────────────────────────────────
   spark-master:
-    image: bitnami/spark:3.4.0
+    build:
+      context: ./spark
+      dockerfile: Dockerfile
     container_name: spark-master
-    environment:
-      - SPARK_MODE=master
-      - SPARK_RPC_AUTHENTICATION_ENABLED=no
-      - SPARK_RPC_ENCRYPTION_ENABLED=no
+    command: /opt/spark/bin/spark-class org.apache.spark.deploy.master.Master
+    volumes:
+      - ./spark:/opt/spark/work
+      - ./models:/models
+      - ./data:/data
     ports:
       - "8081:8080"
       - "7077:7077"
+    environment:
+      - SPARK_NO_DAEMONIZE=true
     networks:
       - bigdata-net
 
   # ─── Spark Worker ─────────────────────────────────────────
   spark-worker:
-    image: bitnami/spark:3.4.0
+    build:
+      context: ./spark
+      dockerfile: Dockerfile
     container_name: spark-worker
+    command: /opt/spark/bin/spark-class org.apache.spark.deploy.worker.Worker spark://spark-master:7077
+    volumes:
+      - ./spark:/opt/spark/work
+      - ./models:/models
+      - ./data:/data
     environment:
-      - SPARK_MODE=worker
-      - SPARK_MASTER_URL=spark://spark-master:7077
+      - SPARK_NO_DAEMONIZE=true
       - SPARK_WORKER_MEMORY=2G
       - SPARK_WORKER_CORES=2
     depends_on:
