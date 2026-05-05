@@ -91,23 +91,18 @@ Score > 3  →  2  (positif)
 ## 🤖 Machine Learning
 
 ### Pipeline NLP
-Texte brut
-│
-▼ Nettoyage (minuscules, regex, caractères spéciaux)
-│
-▼ Lemmatisation (NLTK WordNetLemmatizer)
-│
-▼ Suppression des stopwords
-│
-▼ Tokenisation (Spark Tokenizer)
-│
-▼ HashingTF (10 000 features)
-│
-▼ IDF (pondération TF-IDF)
-│
-▼ Modèle de classification
-│
-▼ Prédiction (négatif / neutre / positif)
+
+```mermaid
+flowchart TD
+    A[Texte brut] --> B[Nettoyage<br/>minuscules, regex, caractères spéciaux]
+    B --> C[Lemmatisation<br/>NLTK WordNetLemmatizer]
+    C --> D[Suppression des stopwords]
+    D --> E[Tokenisation<br/>Spark Tokenizer]
+    E --> F[HashingTF<br/>10 000 features]
+    F --> G[IDF<br/>pondération TF-IDF]
+    G --> H[Modèle de classification]
+    H --> I[Prédiction<br/>négatif / neutre / positif]
+```
 
 ### Modèles évalués
 
