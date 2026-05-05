@@ -28,36 +28,19 @@ et présente les résultats en deux modes :
 ---
 
 ## 🏗️ Architecture
-Amazon Reviews (CSV)
-│
-▼
-┌───────────────┐
-│ Kafka Producer│  ← Simulation du flux temps réel
-│ (python)      │
-└───────┬───────┘
-│  Topic: amazon-reviews (3 partitions)
-▼
-┌───────────────┐
-│ Apache Kafka  │  ← Collecte & diffusion
-│ + Zookeeper   │
-└───────┬───────┘
-│
-▼
-┌───────────────┐     ┌─────────────────┐
-│ Spark         │────▶│    MongoDB      │
-│ Streaming     │     │ (predictions)   │
-│ + MLlib Model │     └────────┬────────┘
-└───────────────┘              │
-▼
-┌─────────────────────┐
-│   Flask Web App     │
-│  ┌───────────────┐  │
-│  │  Flux Online  │  │  ← Socket.IO temps réel
-│  ├───────────────┤  │
-│  │  Dashboard    │  │  ← Graphiques MongoDB
-│  │  Offline      │  │
-│  └───────────────┘  │
-└─────────────────────┘
+
+```mermaid
+flowchart TD
+	A[Amazon Reviews CSV] --> B[Kafka Producer]
+	B --> C[Apache Kafka / Zookeeper]
+	C --> D[Spark Streaming + MLlib Model]
+	D --> E[MongoDB predictions]
+	D --> F[Flask Web App]
+	E --> F
+
+	F --> G[Flux Online<br/>Socket.IO temps réel]
+	F --> H[Dashboard Offline<br/>Graphiques MongoDB]
+```
 
 ---
 
@@ -144,6 +127,8 @@ Texte brut
 ---
 
 ## 📁 Structure du projet
+
+```text
 amazon-reviews-realtime/
 │
 ├── docker-compose.yml          ← Orchestration de tous les services
@@ -182,7 +167,8 @@ amazon-reviews-realtime/
 │   └── init.js                 ← Initialisation MongoDB
 │
 └── models/
-└── best_model/             ← Modèle PySpark sauvegardé
+    └── best_model/             ← Modèle PySpark sauvegardé
+```
 
 ---
 
@@ -302,6 +288,7 @@ KAFKA_TOPIC=amazon-reviews
 | EL Attari Taki eddine | Développement complet |
 
 **Encadrant** : Pr. El Yusufi Yasyn
+
 **Module** : Big Data — IASD 2025/2026
 
 ---
