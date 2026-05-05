@@ -1,12 +1,33 @@
 from flask import Flask, render_template, jsonify, request
 from flask_socketio import SocketIO, emit
 from pymongo import MongoClient
-from kafka import KafkaConsumer
 from datetime import datetime, timedelta
 import json
 import threading
 import logging
 import os
+import sys
+import importlib.util
+from pathlib import Path
+
+
+def _bootstrap_kafka_vendor_six_moves():
+    module_name = "kafka.vendor.six"
+    if "kafka.vendor.six.moves" in sys.modules:
+        return
+
+    repo_root = Path(__file__).resolve().parents[1]
+    six_path = repo_root / ".venv" / "Lib" / "site-packages" / "kafka" / "vendor" / "six.py"
+    spec = importlib.util.spec_from_file_location(module_name, six_path)
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[module_name] = module
+    spec.loader.exec_module(module)
+    sys.modules["kafka.vendor.six.moves"] = module.moves
+
+
+_bootstrap_kafka_vendor_six_moves()
+
+from kafka import KafkaConsumer
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("FlaskApp")

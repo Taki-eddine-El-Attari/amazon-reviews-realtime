@@ -2,8 +2,28 @@ import csv
 import json
 import time
 import logging
-from kafka import KafkaProducer
+import sys
+import importlib.util
+from pathlib import Path
 from datetime import datetime
+
+
+def _bootstrap_kafka_vendor_six_moves():
+    module_name = "kafka.vendor.six"
+    if "kafka.vendor.six.moves" in sys.modules:
+        return
+
+    six_path = Path(__file__).resolve().parents[1] / ".venv" / "Lib" / "site-packages" / "kafka" / "vendor" / "six.py"
+    spec = importlib.util.spec_from_file_location(module_name, six_path)
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[module_name] = module
+    spec.loader.exec_module(module)
+    sys.modules["kafka.vendor.six.moves"] = module.moves
+
+
+_bootstrap_kafka_vendor_six_moves()
+
+from kafka import KafkaProducer
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("KafkaProducer")
