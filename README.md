@@ -1,4 +1,4 @@
-# 🛒 Amazon Reviews Intelligence — Analyse en Temps Réel
+# 🛒 Amazon Reviews Intelligence
 
 > Système complet d'analyse de sentiment des avis Amazon en temps réel,
 > basé sur une architecture Big Data distribuée : Kafka · Spark Streaming · MongoDB · Flask
