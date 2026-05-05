@@ -252,6 +252,7 @@ python producer.py
 ## 🖥️ Interface Web
 
 ### Mode Online — Flux temps réel
+<img width="1857" height="931" alt="image" src="https://github.com/user-attachments/assets/44779e1c-86d2-41f7-8639-b5627aca9f3d" />
 
 - Affichage en continu de chaque avis avec sa prédiction
 - Badge coloré : 🟢 Positif · 🔴 Négatif · 🟡 Neutre
@@ -260,6 +261,8 @@ python producer.py
 - Refresh automatique toutes les 3 secondes
 
 ### Mode Offline — Dashboard analytique
+<img width="1864" height="832" alt="image" src="https://github.com/user-attachments/assets/44154bcf-46d0-4a2d-a953-af39dd95ae95" />
+<img width="1852" height="838" alt="image" src="https://github.com/user-attachments/assets/d0153b94-88df-464f-9bba-6543f9c2dbc7" />
 
 - KPIs globaux : total, positifs, négatifs, neutres
 - Graphique en barres empilées : prédictions par date
@@ -289,7 +292,7 @@ KAFKA_TOPIC=amazon-reviews
 
 **Encadrant** : Pr. El Yusufi Yasyn
 
-**Module** : Big Data — IASD 2025/2026
+**Module** : Big Data
 
 ---
 
