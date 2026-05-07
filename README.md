@@ -1,7 +1,7 @@
 # 🛒 Amazon Reviews Intelligence
 
 > Système complet d'analyse de sentiment des avis Amazon en temps réel,
-> basé sur une architecture Big Data distribuée : Kafka · Spark Streaming · MongoDB · Flask
+> basé sur une architecture Big Data distribuée : Kafka · Spark Streaming · MongoDB · Flask · Airflow
 
 ![Python](https://img.shields.io/badge/Python-3.10-3776AB?style=flat-square&logo=python&logoColor=white)
 ![Apache Kafka](https://img.shields.io/badge/Apache_Kafka-3.4-231F20?style=flat-square&logo=apachekafka&logoColor=white)
@@ -37,6 +37,9 @@ flowchart TD
 	D --> E[MongoDB predictions]
 	D --> F[Flask Web App]
 	E --> F
+    I[Apache Airflow] --> C
+    I --> D
+    I --> E
 
 	F --> G[Flux Online<br/>Socket.IO temps réel]
 	F --> H[Dashboard Offline<br/>Graphiques MongoDB]
@@ -56,6 +59,7 @@ flowchart TD
 | Python | 3.10 | Développement des scripts |
 | PySpark MLlib | 3.4.0 | Machine Learning distribué |
 | Flask + SocketIO | 2.3.3 | Interface web temps réel |
+| Apache Airflow | 2.8.0 | Orchestration, monitoring SLA et qualité |
 | NLTK | 3.8 | Lemmatisation du texte |
 
 ---
@@ -149,6 +153,14 @@ amazon-reviews-realtime/
 │   ├── submit.sh               ← Script de soumission Spark
 │   └── requirements.txt
 │
+├── airflow/
+│   ├── dags/
+│   │   ├── 00_streaming_preflight_dag.py
+│   │   ├── 01_streaming_guardrails_dag.py
+│   │   ├── 02_streaming_sla_monitor_dag.py
+│   │   └── 03_dashboard_refresh_dag.py
+│   └── logs/
+│
 ├── web/
 │   ├── app.py                  ← Backend Flask + SocketIO
 │   ├── Dockerfile
@@ -202,6 +214,7 @@ docker-compose ps
 
 | Service | URL |
 |---|---|
+| Airflow UI | http://localhost:8082 |
 | Kafka UI | http://localhost:8080 |
 | Spark Master | http://localhost:8081 |
 | Jupyter Notebook | http://localhost:8888 |
@@ -241,6 +254,14 @@ python producer.py
 |---|---|---|
 | Flux Online | http://localhost:5000 | Prédictions en temps réel |
 | Dashboard Offline | http://localhost:5000/dashboard | Analyses MongoDB |
+| Airflow UI | http://localhost:8082 | Monitoring des DAGs |
+
+### Étape 9 — DAGs Airflow à activer
+
+- `00_streaming_preflight` : vérification Kafka/Spark/Mongo/modèle
+- `01_streaming_guardrails` : contrôles qualité streaming + rapport MongoDB
+- `02_streaming_sla_monitor` : contrôle SLA/fraicheur des prédictions + rapport MongoDB
+- `04_dashboard_aggregation` : agrégations dashboard offline
 
 ---
 
@@ -267,12 +288,26 @@ python producer.py
 
 ---
 
+## 🌬️ Airflow Monitoring
+
+### Vue des DAGs
+
+<!-- Remplacer ce placeholder par votre capture écran Airflow -->
+![Airflow DAGs - Placeholder](docs/images/airflow-dags-placeholder.png)
+
+- `00_streaming_preflight` : Vérifie que l’environnement est prêt: Kafka + topic, Spark master, MongoDB, et modèle best_model présent.
+- `01_streaming_guardrails` : Fait des contrôles qualité streaming (volume, champs manquants, distribution labels) et stocke un rapport santé dans streaming_health_reports.
+- `02_streaming_sla_monitor` : Surveille le SLA temps réel (fraîcheur et activité des prédictions), stocke un rapport dans streaming_sla_reports, et échoue si anomalie détectée.
+- `04_dashboard_aggregation` : Calcule les agrégations offline pour le dashboard (stats globales, par date, top produits) à partir de MongoDB.
+
+---
+
 ## 🔧 Variables d'environnement
 
 Créez un fichier `.env` à la racine :
 
 ```env
-MONGO_URI=mongodb://admin:admin123@localhost:27017/amazon_reviews?authSource=admin
+MONGO_URI=mongodb://admin:admin123@localhost:38017/amazon_reviews?authSource=admin
 KAFKA_BOOTSTRAP_SERVERS=localhost:9092
 KAFKA_TOPIC=amazon-reviews
 ```
