@@ -67,7 +67,7 @@ flowchart TD
 
 ## 📊 Dataset
 
-**Source** : [Amazon Fine Food Reviews — Kaggle](https://www.kaggle.com/snap/amazon-fine-food-reviews)
+**Source** : <a href="https://www.kaggle.com/snap/amazon-fine-food-reviews" target="_blank" rel="noopener noreferrer">Amazon Fine Food Reviews — Kaggle</a>
 
 | Caractéristique | Valeur |
 |---|---|
@@ -200,7 +200,7 @@ cd amazon-reviews-realtime
 
 ### Étape 2 — Placer le dataset
 
-Téléchargez `Reviews.csv` depuis [Kaggle](https://www.kaggle.com/snap/amazon-fine-food-reviews)
+Téléchargez `Reviews.csv` depuis <a href="https://www.kaggle.com/snap/amazon-fine-food-reviews" target="_blank" rel="noopener noreferrer">Kaggle</a>
 et placez-le dans le dossier `data/`.
 
 ### Étape 3 — Lancer l'infrastructure Docker
