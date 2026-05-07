@@ -7,6 +7,7 @@
 ![Apache Kafka](https://img.shields.io/badge/Apache_Kafka-3.4-231F20?style=flat-square&logo=apachekafka&logoColor=white)
 ![Apache Spark](https://img.shields.io/badge/Apache_Spark-3.4.0-E25A1C?style=flat-square&logo=apachespark&logoColor=white)
 ![MongoDB](https://img.shields.io/badge/MongoDB-6.0-47A248?style=flat-square&logo=mongodb&logoColor=white)
+![Apache Airflow](https://img.shields.io/badge/Apache_Airflow-2.8.0-017CEE?style=flat-square&logo=apacheairflow&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?style=flat-square&logo=docker&logoColor=white)
 ![Flask](https://img.shields.io/badge/Flask-2.3-000000?style=flat-square&logo=flask&logoColor=white)
 
