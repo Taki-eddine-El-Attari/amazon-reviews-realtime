@@ -31,7 +31,7 @@ logger = logging.getLogger("KafkaConsumer")
 KAFKA_BOOTSTRAP_SERVERS = "localhost:9092"
 KAFKA_TOPIC             = "amazon-reviews"
 KAFKA_GROUP_ID          = "amazon-reviews-group"
-MONGO_URI               = "mongodb://admin:admin123@localhost:27017/amazon_reviews?authSource=admin"
+MONGO_URI               = "mongodb://admin:admin123@localhost:38017/amazon_reviews?authSource=admin"
 MONGO_DB                = "amazon_reviews"
 MONGO_COLLECTION        = "raw_reviews"
 

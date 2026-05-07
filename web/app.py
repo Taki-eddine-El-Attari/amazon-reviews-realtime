@@ -34,10 +34,13 @@ logger = logging.getLogger("FlaskApp")
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "amazon-bigdata-2026"
-socketio = SocketIO(app, cors_allowed_origins="*", async_mode="eventlet")
+try:
+    socketio = SocketIO(app, cors_allowed_origins="*", async_mode="eventlet")
+except ValueError:
+    socketio = SocketIO(app, cors_allowed_origins="*", async_mode="threading")
 
 # ─── MongoDB ──────────────────────────────────────────────
-MONGO_URI  = os.getenv("MONGO_URI", "mongodb://admin:admin123@localhost:27017/amazon_reviews?authSource=admin")
+MONGO_URI  = os.getenv("MONGO_URI", "mongodb://admin:admin123@localhost:38017/amazon_reviews?authSource=admin")
 client     = MongoClient(MONGO_URI)
 db         = client["amazon_reviews"]
 col_pred   = db["predictions"]

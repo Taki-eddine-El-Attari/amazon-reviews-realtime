@@ -18,6 +18,9 @@ __pycache__/
 .venv/
 venv/
 
+# ─── Airflow ────────────────────
+airflow/logs/
+
 # ─── Jupyter ──────────────────────────
 .ipynb_checkpoints/
 notebooks/.ipynb_checkpoints/
@@ -30,3 +33,8 @@ mongo-data/
 
 # ─── VS Code ──────────────────────────
 .vscode/
+
+# ─── Autres ──────────────────────────
+Commandes.md
+start.bat
+stop.bat
