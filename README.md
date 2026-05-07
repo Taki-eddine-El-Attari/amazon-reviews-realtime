@@ -295,7 +295,8 @@ python producer.py
 ### Vue des DAGs
 
 <!-- Remplacer ce placeholder par votre capture écran Airflow -->
-![Airflow DAGs - Placeholder](docs/images/airflow-dags-placeholder.png)
+<img width="1874" height="714" alt="image" src="https://github.com/user-attachments/assets/85515e6b-73a9-4919-8526-ee724dcd7b9b" />  
+<br></br>
 
 - `00_streaming_preflight` : Vérifie que l’environnement est prêt: Kafka + topic, Spark master, MongoDB, et modèle best_model présent.
 - `01_streaming_guardrails` : Fait des contrôles qualité streaming (volume, champs manquants, distribution labels) et stocke un rapport santé dans streaming_health_reports.
