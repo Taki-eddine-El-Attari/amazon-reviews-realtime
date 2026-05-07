@@ -109,12 +109,14 @@ flowchart TD
 ```
 
 ### Modèles évalués
+<img width="1500" height="900" alt="image" src="https://github.com/user-attachments/assets/fb182f1e-d2b2-4548-a4eb-76bf93bfccc5" />
+<br></br>
 
 | Modèle | Accuracy (Test) | F1-score |
 |---|---|---|
-| Naive Bayes | ~0.85 | ~0.84 |
-| Logistic Regression | ~0.89 | ~0.88 |
-| Random Forest | ~0.87 | ~0.86 |
+| Naive Bayes | 0.7674 | 0.7945 |
+| Logistic Regression | 0.8668 | 0.8503 |
+| Random Forest | 0.7821 | 0.6869 |
 
 > Le meilleur modèle est sélectionné automatiquement et sauvegardé dans `models/best_model/`
 
